@@ -1,18 +1,26 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
+# Various IDEs and Editors
+.vscode/
+.idea/
+**/*~
 
-# Other files and folders
-.settings/
+# Mac OSX temporary files
+.DS_Store
+**/.DS_Store
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+# dfx temporary files
+.dfx/
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+# generated files
+src/declarations/
+
+# rust
+target/
+
+# frontend code
+node_modules/
+dist/
+
+# environment variables
+.env
+.dfx
+/target
