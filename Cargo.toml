@@ -2,4 +2,5 @@
 members = [
     "src/icrc7",
     "src/factory",
+    "src/ext_based_dip721_lib",
 ]

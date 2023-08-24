@@ -5,7 +5,26 @@ use ic_cdk::api::management_canister::main::{
     CreateCanisterArgument, CanisterIdRecord, CanisterSettings, CanisterInstallMode, InstallCodeArgument,
 };
 
-#[derive(CandidType, Debug)]
+#[derive(CandidType, Debug, Clone)]
+pub struct MintArgs {
+    pub id: u128,
+    pub name: String,
+    pub description: Option<String>,
+    pub image: Option<Vec<u8>>,
+    pub to: Account,
+    pub canister_name: String,
+}
+
+
+#[derive(Clone)]
+pub struct Args {
+    pub id: u128,
+    pub name: String,
+    pub description: Option<String>,
+    pub to: Account
+}
+
+#[derive(CandidType, Debug, Clone)]
 pub struct InitArg{
     pub name: String,
     pub symbol: String,
@@ -17,9 +36,10 @@ pub struct InitArg{
     pub description: Option<String>,
     pub image: Option<Vec<u8>>,
     pub supply_cap: Option<u128>,
+    pub wasm_name: String
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Clone)]
 pub struct CreateArg{
     pub name: String,
     pub symbol: String,
@@ -28,6 +48,7 @@ pub struct CreateArg{
     pub description: Option<String>,
     pub image: Option<Vec<u8>>,
     pub supply_cap: Option<u128>,
+    pub wasm_name: String
 }
 
 impl From<(Principal, CreateArg)> for InitArg{
@@ -42,11 +63,12 @@ impl From<(Principal, CreateArg)> for InitArg{
             royalties_recipient: arg.royalties_recipient, 
             description: arg.description, 
             image: arg.image, 
-            supply_cap: arg.supply_cap }
+            supply_cap: arg.supply_cap ,
+            wasm_name: arg.wasm_name
+        }
     }
 }
 
-const WASM: &[u8] = std::include_bytes!("/Users/yumeng/icrc7/target/wasm32-unknown-unknown/release/icrc7.wasm.gz");
 
 pub async fn get_an_address(caller: &Principal) -> Principal{
     ic_cdk::println!("{}", caller.clone());
@@ -87,25 +109,69 @@ pub async fn install_wasm(wasm: Vec<u8>, canister_id: Principal, args: Vec<u8>,)
     }
     true
 }
+const ICRC7_WASM: &[u8] = std::include_bytes!("/Users/yumeng/icrc7/target/wasm32-unknown-unknown/release/icrc7.wasm.gz");
+const DIP721_WASM: &[u8] = std::include_bytes!("/Users/yumeng/icrc7/target/wasm32-unknown-unknown/release/ext_based_dip721_lib.wasm.gz");
+
+fn choose_wasm(wasm_name: &str) -> Vec<u8>{
+    match wasm_name {
+        "icrc7" => return ICRC7_WASM.to_vec(),
+        "dip721" => return DIP721_WASM.to_vec(),
+        _ => return vec![],
+    }
+}
+
+const icrc7: &str = ""
+const dip721: &str = ""
+fn choose_canister(args: &MintArgs) -> String {
+    let canister_id = args.canister_id;
+    let canister_name = args.canister_name;
+    let mint_args = Args {
+        id: args.id,
+        name: args.name,
+        description: args.description,
+        to: args.to,
+    }
+    match canister_name {
+        "icrc7" => {
+            let result = ic_cdk::api::call(canister_id.to_string(), "icrc7_mint", (mint_args, ));
+        }
+        "dip721" => {
+            let result = ic_cdk::api::call(canister_id.to_string(), "dip721_mint", (mint_args, ));
+        }
+        _ => return "".to_string(),
+    }
+}
+
 
 #[update]
 #[candid_method(update)]
-pub async fn create_icrc7_collection(
-    arg: CreateArg
+pub async fn create_collection(
+    create_arg: CreateArg
 ) -> Principal{
     let caller = ic_cdk::caller();
-    let arg = InitArg::from((caller, arg));
+    let init_arg = InitArg::from((caller, create_arg.clone()));
     // ic_cdk::println!("{:?}", &arg);
     let address = get_an_address(&caller).await;
     if address == Principal::anonymous(){
         ic_cdk::trap("Failed to get an address")
     }
-    let arg = Encode!(&arg).unwrap();
+    let wasm_name = create_arg.wasm_name;
+    let arg = Encode!(&init_arg).unwrap();
+    let wasm = choose_wasm(&wasm_name);
     // ic_cdk::println!("{:?}", arg.clone());
-    match install_wasm(WASM.to_vec(), address, arg).await{
+    match install_wasm(wasm, address, arg).await{
         true => address,
         false => ic_cdk::trap("Failed to install code")
     }
+}
+
+#[update]
+#[candid_method(update)]
+pub async fn mint_factory(
+    args: MintArgs,
+) -> u32 {
+    let token_id = choose_canister(args)
+    
 }
 
 #[query(name = "__get_candid_interface_tmp_hack")]

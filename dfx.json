@@ -6,6 +6,11 @@
       "candid": "src/icrc7/icrc7.did",
       "wasm": "target/wasm32-unknown-unknown/release/icrc7.wasm.gz"
     },
+    "dip721": {
+      "type": "custom",
+      "candid": "src/ext_based_dip721_lib/ext_based_dip721_lib.did",
+      "wasm": "target/wasm32-unknown-unknown/release/ext_based_dip721_lib.wasm.gz"
+    },
     "factory": {
       "type": "custom",
       "candid": "src/factory/service.did",

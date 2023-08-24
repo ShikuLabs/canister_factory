@@ -7,5 +7,6 @@ type CreateArg = record {
   image : opt vec nat8;
   royalties_recipient : opt Account;
   symbol : text;
+  wasm_name : text;
 };
-service : { create_icrc7_collection : (CreateArg) -> (principal) }
+service : { create_collection : (CreateArg) -> (principal) }
