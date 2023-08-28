@@ -15,7 +15,7 @@ pub fn init(
     };
     COLLECTION.with(|c|{
         let mut c = c.borrow_mut();
-        let collection = Collection{
+        let collection = Collection {
             name: arg.name,
             symbol: arg.symbol,
             royalties: arg.royalties,

@@ -1,3 +1,6 @@
 [submodule "src/ext_based_dip721_lib"]
 	path = src/ext_based_dip721_lib
 	url = https://github.com/ShikuLabs/ext_based_dip721_lib.git
+[submodule "src/origyn_nft"]
+	path = src/origyn_nft
+	url = https://github.com/ORIGYN-SA/origyn_nft.git
