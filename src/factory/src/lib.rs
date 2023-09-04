@@ -4,27 +4,28 @@ use icrc_ledger_types::icrc1::account::Account;
 use ic_cdk::api::management_canister::main::{
     CreateCanisterArgument, CanisterIdRecord, CanisterSettings, CanisterInstallMode, InstallCodeArgument,
 };
-
-#[derive(CandidType, Debug, Clone)]
+#[derive(CandidType, Debug, Clone, Deserialize)]
 pub struct MintArgs {
     pub id: u128,
     pub name: String,
     pub description: Option<String>,
-    pub image: Option<Vec<u8>>,
+    pub image: String,
     pub to: Account,
     pub canister_name: String,
+    pub canister_id: String,
 }
 
 
-#[derive(Clone)]
+#[derive(CandidType, Debug, Clone, Deserialize)]
 pub struct Args {
     pub id: u128,
     pub name: String,
     pub description: Option<String>,
-    pub to: Account
+    pub to: Account,
+    pub image: Option<Vec<u8>>,
 }
 
-#[derive(CandidType, Debug, Clone)]
+#[derive(CandidType, Debug, Clone, Deserialize)]
 pub struct InitArg{
     pub name: String,
     pub symbol: String,
@@ -49,6 +50,18 @@ pub struct CreateArg{
     pub image: Option<Vec<u8>>,
     pub supply_cap: Option<u128>,
     pub wasm_name: String
+}
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct ICRC7Response(u32);
+#[derive(CandidType, Deserialize, Clone)]
+pub struct ICRC7Err(String);
+#[derive(CandidType, Deserialize, Clone)]
+
+pub enum  MintResponse {
+    Icrc7(ICRC7Response),
+    None,
+    Error(ICRC7Err),
 }
 
 impl From<(Principal, CreateArg)> for InitArg{
@@ -120,25 +133,38 @@ fn choose_wasm(wasm_name: &str) -> Vec<u8>{
     }
 }
 
-const icrc7: &str = ""
-const dip721: &str = ""
-fn choose_canister(args: &MintArgs) -> String {
-    let canister_id = args.canister_id;
-    let canister_name = args.canister_name;
+const icrc7: &str = "6222m-vqaaa-aaaah-adova-cai";
+const dip721: &str = "6222m-vqaaa-aaaah-adova-cai";
+async fn mint_internal(args: &MintArgs) -> MintResponse {
+    let canister_id = &args.canister_id;
+    let p_canister_id = Principal::from_text(canister_id).unwrap();
+    let canister_name = args.canister_name.as_str();
+    let image = serde_json::to_vec(&args.image).unwrap();
     let mint_args = Args {
         id: args.id,
-        name: args.name,
-        description: args.description,
+        name: args.name.clone(),
+        description: args.description.clone(),
         to: args.to,
-    }
+        image: Some(image),
+    };
     match canister_name {
         "icrc7" => {
-            let result = ic_cdk::api::call(canister_id.to_string(), "icrc7_mint", (mint_args, ));
-        }
-        "dip721" => {
-            let result = ic_cdk::api::call(canister_id.to_string(), "dip721_mint", (mint_args, ));
-        }
-        _ => return "".to_string(),
+
+            let (result, ) :(MintResponse, )= match ic_cdk::api::call::call(p_canister_id, "icrc7_mint", (mint_args, )).await {
+                Ok(x) =>x,
+                // MintResponse::Icrc7(ICRC7Response(x)),
+                Err((_, e)) => (MintResponse::Error(ICRC7Err(e)), ),
+            };
+            return result;
+        },
+        // "dip721"=> {
+        //     let result = match ic_cdk::api::call::call(p_canister_id, "dip721_mint", (mint_args, )).await {
+        //         Ok(x) => x,
+        //         Err(_) => (),
+        //     };
+        //     return result.to_string();
+        // },
+        _ => MintResponse::None,
     }
 }
 
@@ -167,10 +193,11 @@ pub async fn create_collection(
 
 #[update]
 #[candid_method(update)]
-pub async fn mint_factory(
+pub async fn mint_proxy(
     args: MintArgs,
-) -> u32 {
-    let token_id = choose_canister(args)
+) -> MintResponse {
+    let response =  mint_internal(&args).await;
+    response
     
 }
 

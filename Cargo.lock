@@ -313,6 +313,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "dip721"
+version = "0.1.0"
+dependencies = [
+ "candid 0.8.4",
+ "ext_based_dip721_lib",
+ "ic-cdk 0.9.2",
+ "ic-cdk-macros 0.6.10",
+ "serde",
+]
+
+[[package]]
 name = "dirs-next"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -378,6 +389,7 @@ dependencies = [
 [[package]]
 name = "ext_based_dip721_lib"
 version = "0.1.0"
+source = "git+https://github.com/ShikuLabs/ext_based_dip721_lib.git#f507e72e0c35fae70461940172466943df551a9f"
 dependencies = [
  "anyhow",
  "candid 0.7.18",
@@ -399,6 +411,7 @@ dependencies = [
  "ic-cdk-macros 0.6.10",
  "icrc-ledger-types",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

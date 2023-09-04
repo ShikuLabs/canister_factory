@@ -9,4 +9,16 @@ type CreateArg = record {
   symbol : text;
   wasm_name : text;
 };
-service : { create_collection : (CreateArg) -> (principal) }
+type MintArgs = record {
+  id : nat;
+  to : Account;
+  name : text;
+  canister_id : text;
+  description : opt text;
+  image : text;
+  canister_name : text;
+};
+service : {
+  create_collection : (CreateArg) -> (principal);
+  mint_proxy : (MintArgs) -> ();
+}
