@@ -18,7 +18,8 @@ type MintArgs = record {
   image : text;
   canister_name : text;
 };
+type MintResponse = variant { ok : nat; err : text; other : text };
 service : {
   create_collection : (CreateArg) -> (principal);
-  mint_proxy : (MintArgs) -> ();
+  mint_proxy : (MintArgs) -> (MintResponse);
 }

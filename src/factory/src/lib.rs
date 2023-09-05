@@ -4,7 +4,9 @@ use icrc_ledger_types::icrc1::account::Account;
 use ic_cdk::api::management_canister::main::{
     CreateCanisterArgument, CanisterIdRecord, CanisterSettings, CanisterInstallMode, InstallCodeArgument,
 };
-#[derive(CandidType, Debug, Clone, Deserialize)]
+use ic_cdk::api::call::{CallResult, call};
+use serde::Serialize;
+#[derive(CandidType, Debug, Clone, Deserialize, Serialize)]
 pub struct MintArgs {
     pub id: u128,
     pub name: String,
@@ -16,7 +18,7 @@ pub struct MintArgs {
 }
 
 
-#[derive(CandidType, Debug, Clone, Deserialize)]
+#[derive(CandidType, Debug, Clone, Deserialize, Serialize)]
 pub struct Args {
     pub id: u128,
     pub name: String,
@@ -25,7 +27,7 @@ pub struct Args {
     pub image: Option<Vec<u8>>,
 }
 
-#[derive(CandidType, Debug, Clone, Deserialize)]
+#[derive(CandidType, Debug, Clone, Deserialize, Serialize)]
 pub struct InitArg{
     pub name: String,
     pub symbol: String,
@@ -52,16 +54,16 @@ pub struct CreateArg{
     pub wasm_name: String
 }
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct ICRC7Response(u32);
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug, Serialize)]
+pub struct ICRC7Response(u128);
+#[derive(CandidType, Deserialize, Clone, Debug, Serialize)]
 pub struct ICRC7Err(String);
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug, Serialize)]
 
 pub enum  MintResponse {
-    Icrc7(ICRC7Response),
-    None,
-    Error(ICRC7Err),
+    ok(ICRC7Response),
+    other(String),
+    err(ICRC7Err),
 }
 
 impl From<(Principal, CreateArg)> for InitArg{
@@ -147,15 +149,24 @@ async fn mint_internal(args: &MintArgs) -> MintResponse {
         to: args.to,
         image: Some(image),
     };
-    match canister_name {
+    let result = match canister_name {
         "icrc7" => {
-
-            let (result, ) :(MintResponse, )= match ic_cdk::api::call::call(p_canister_id, "icrc7_mint", (mint_args, )).await {
-                Ok(x) =>x,
-                // MintResponse::Icrc7(ICRC7Response(x)),
-                Err((_, e)) => (MintResponse::Error(ICRC7Err(e)), ),
+            
+            let result: CallResult<(u128,)> = ic_cdk::api::call::call(p_canister_id, "icrc7_mint", (mint_args, )).await;
+               
+            
+            let mint_res = match result
+             {
+                Ok(res) => MintResponse::ok(ICRC7Response(res.0)),
+                // Ok((res, )) => match res {
+                //     Ok(r) => 
+                //         return MintResponse::ok(ICRC7Response(r)),
+                //     Err(e) => return MintResponse::err(ICRC7Err(e)),
+                // }
+                         
+                Err((_, e)) => MintResponse::err(ICRC7Err(e)),
             };
-            return result;
+            return mint_res;
         },
         // "dip721"=> {
         //     let result = match ic_cdk::api::call::call(p_canister_id, "dip721_mint", (mint_args, )).await {
@@ -164,8 +175,9 @@ async fn mint_internal(args: &MintArgs) -> MintResponse {
         //     };
         //     return result.to_string();
         // },
-        _ => MintResponse::None,
-    }
+        _ => MintResponse::other("invalid canister id".to_string()),
+    };
+    result
 }
 
 
