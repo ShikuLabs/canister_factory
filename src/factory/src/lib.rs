@@ -185,7 +185,6 @@ pub async fn create_collection(
 ) -> Principal{
     let caller = ic_cdk::caller();
     let init_arg = InitArg::from((caller, create_arg.clone()));
-    // ic_cdk::println!("{:?}", &arg);
     let address = get_an_address(&caller).await;
     if address == Principal::anonymous(){
         ic_cdk::trap("Failed to get an address")
@@ -193,7 +192,6 @@ pub async fn create_collection(
     let wasm_name = create_arg.wasm_name;
     let arg = Encode!(&init_arg).unwrap();
     let wasm = choose_wasm(&wasm_name);
-    // ic_cdk::println!("{:?}", arg.clone());
     match install_wasm(wasm, address, arg).await{
         true => address,
         false => ic_cdk::trap("Failed to install code")
