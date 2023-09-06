@@ -86,7 +86,6 @@ impl From<(Principal, CreateArg)> for InitArg{
 
 
 pub async fn get_an_address(caller: &Principal) -> Principal{
-    ic_cdk::println!("{}", caller.clone());
     let canister_setting = CanisterSettings{
         controllers: Some(vec![caller.clone(), ic_cdk::id()]),
         compute_allocation: Some(Nat::from(0_u64)),
@@ -113,12 +112,10 @@ pub async fn install_wasm(wasm: Vec<u8>, canister_id: Principal, args: Vec<u8>,)
         canister_id,
         arg: args
     };
-    // ic_cdk::println!("{:?}", install_config.clone());
     match ic_cdk::api::call::call(Principal::management_canister(), "install_code", (install_config,)).await
     {
         Ok(x) => x,
         Err((rejection_code, msg)) =>{
-            ic_cdk::println!("{:?} {:?}", rejection_code, msg);
             return false
         }
     }
@@ -213,6 +210,12 @@ pub async fn mint_proxy(
     
 }
 
+// #[update]
+// #[candid_method(update)]
+// pub async fn metadata_proxy(
+//     args: MetaDataArgs,
+// ) -> Me
+
 #[query(name = "__get_candid_interface_tmp_hack")]
 fn export_candid() -> String {
     export_service!();
@@ -233,3 +236,4 @@ mod tests {
         write(dir.join("service.did"), export_candid()).expect("Write failed.");
     }
 }
+
