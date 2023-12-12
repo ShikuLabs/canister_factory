@@ -2,6 +2,10 @@
 ---
 ## note
 - This project was written taking reference of [icrc7](https://github.com/dfinity/ICRC/blob/main/ICRCs/ICRC-7/ICRC-7.md)
+## Architecture
+![image](https://github.com/ShikuLabs/canister_factory/assets/8555534/a1399337-24a2-4da7-9b45-020cfffb3291)
+![image](https://github.com/ShikuLabs/canister_factory/assets/8555534/3e04423e-ecf0-4c17-8be2-004dc3034c7a)
+![image](https://github.com/ShikuLabs/canister_factory/assets/8555534/3ce9066a-28fe-47d3-ae91-5aaf6a0815fb)
 
 ## Features
 - [x] Stable Memory
